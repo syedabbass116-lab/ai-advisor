@@ -248,7 +248,7 @@ if len(usernames) == 0:
     usernames = ["test"]
     passwords = ["1234"]
 
-hashed_passwords = stauth.Hasher(passwords).generate()
+hashed_passwords = passwords
 
 authenticator = stauth.Authenticate(
     dict(zip(usernames, [{"name": u, "password": hashed_passwords[i]} for i, u in enumerate(usernames)])),
