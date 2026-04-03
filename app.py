@@ -40,7 +40,6 @@ st.sidebar.title("Login / Register")
 
 users = load_all_users()
 
-# LOGIN
 username_input = st.sidebar.text_input("Username")
 password_input = st.sidebar.text_input("Password", type="password")
 
@@ -48,6 +47,7 @@ if st.sidebar.button("Login"):
     if username_input in users and users[username_input]["password"] == password_input:
         st.session_state["user"] = username_input
         st.success("Logged in successfully!")
+        st.rerun()
     else:
         st.sidebar.error("Invalid credentials")
 
@@ -71,7 +71,7 @@ if st.sidebar.button("Register"):
         else:
             st.sidebar.error("User already exists")
 
-# CHECK LOGIN STATE
+# CHECK LOGIN
 authentication_status = False
 if "user" in st.session_state:
     username = st.session_state["user"]
@@ -95,34 +95,48 @@ if authentication_status:
     if "step" not in st.session_state:
         st.session_state.step = user_data.get("step", 0)
 
+    # -------------------------
+    # QUESTIONS (FIXED FLOW)
+    # -------------------------
     questions = [
-        "Hey, I’m Bruce — your AI advisor 👋 What’s your name?",
-        "What do you do? (student, job, etc.)",
-        "Gender?",
-        "Date of birth?",
-        "Personality? (introvert/extrovert/ambivert)",
-        "What are you thinking about lately?",
-        "What excites you?",
-        "What frustrates you?",
-        "A moment you felt proud?",
-        "Your ideal life in 1–2 years?"
+        "Hey, I’m Bruce — your personal AI advisor 👋\n\nLet’s start simple.\n\nWhat’s your name?",
+        
+        "Nice to meet you! What do you do currently?\n(e.g., student, working professional, freelancer, etc.)",
+        
+        "What’s your gender?",
+        
+        "What’s your date of birth?",
+        
+        "How would you describe your personality?\n(e.g., introvert, extrovert, ambivert)",
+        
+        "What’s something you’ve been thinking a lot about lately?\n(e.g., career, money, relationships, self-growth)",
+        
+        "What kind of activities or work make you feel excited or interested?\n(e.g., building things, talking to people, analyzing, creativity)",
+        
+        "What’s something in your life right now that feels frustrating?\n(e.g., lack of clarity, no progress, distractions)",
+        
+        "Tell me about a time you felt proud or satisfied.\nWhat were you doing?",
+        
+        "If things go well in the next 1–2 years, what would you want your life to look like?\n(e.g., job, income, lifestyle)"
     ]
 
-    # DISPLAY CHAT
+    # -------------------------
+    # SHOW CHAT
+    # -------------------------
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    # FIRST MESSAGE
+    # FIRST QUESTION INIT
     if len(st.session_state.messages) == 0:
         first_q = questions[0]
         st.session_state.messages.append({"role": "assistant", "content": first_q})
-        st.chat_message("assistant").write(first_q)
+        st.rerun()
 
     user_input = st.chat_input("Type here...")
 
     # -------------------------
-    # ONBOARDING FLOW
+    # ONBOARDING (FIXED)
     # -------------------------
     if st.session_state.step < len(questions):
 
@@ -136,14 +150,19 @@ if authentication_status:
             ]
 
             st.session_state.user_profile[keys[st.session_state.step]] = user_input
+
             st.session_state.step += 1
 
             if st.session_state.step < len(questions):
                 next_q = questions[st.session_state.step]
                 st.session_state.messages.append({"role": "assistant", "content": next_q})
             else:
-                msg = "Got it. I understand you now. Ask me anything."
-                st.session_state.messages.append({"role": "assistant", "content": msg})
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": "Got it. I understand you now. Ask me anything."
+                })
+
+            st.rerun()
 
     # -------------------------
     # ADVISOR MODE
@@ -176,8 +195,10 @@ Rules:
 
             st.session_state.messages.append({"role": "assistant", "content": reply})
 
+            st.rerun()
+
     # -------------------------
-    # SAVE DATA
+    # SAVE USER DATA
     # -------------------------
     save_user_data(username, {
         "password": users[username]["password"],
